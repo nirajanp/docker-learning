@@ -38,6 +38,7 @@ _________________________________________________
   * since we don't want the server to be running all the time, we use __--detach__; it tells Docker to run it in the background. This command returns with a unique container ID of your container. Every time you run a new container you get unique id.
 
   * command: `docker container run --publish 80:80 --detach --name webhost nginx`
+  * alt command: `docker container run -d -p 80:80 --name webhost nginx`
   * This will create a docker container with name webhost
 _________________________________________________
 
@@ -56,7 +57,8 @@ _________________________________________________
 
   * command: `docker container rm <id> <id>`
   * this will remove multiple docker container with specific id at once
-  * you can view the id of docker container by listing all the docker container `docker container ls -a`
+  * command: `docker container ls -a`
+  * you can view the id of docker container by listing all the docker container 
 _________________________________________________
 
   * command: `docker container rm -f d30`
@@ -73,6 +75,31 @@ _________________________________________________
   * since we did the 80:80, that's telling it to take post 80 in the host and forward all that traffic to port 80 in the container
   * then that container will start using command specified in the Dockerfile
 
+### Container vs VMs
+
+#### Containers aren't Mini-VM's
+
+  * They are just processes
+  * Limited to what resource they can access
+  * Exit when process stops
+_________________________________________________
+
+  * command: `docker run --name mongo -d mongo`
+  * this will start a mongo database with name "mongo" using mongo image and will run in the background
+_________________________________________________
+
+  * command: `docker top mongo`
+  * this will let me list the processes that are running inside a specific container
+_________________________________________________
+
+  * command: `ps aux | grep mongo`
+  * this command will show process with name "mongo" running.
+  * in macOS by default you won't be able to list the docker processes running in the host because Docker in Mac is actually running a tiny Linux VM in the background. So in order to run `ps aux` you will need to run it from inside tiny Linux VM.
+  * This site has information how to run tiny Linux VM in your mac [Getting into Local Docker VM](https://www.bretfisher.com/docker-for-mac-commands-for-getting-into-local-docker-vm/)
+_________________________________________________
+
+  * command: `docker image ls` 
+  * list the images 
 
 
 
