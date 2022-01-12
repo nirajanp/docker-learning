@@ -1,6 +1,6 @@
 # Docker Reference Guide
 
-## Creating and Using Containers
+## Section 3: Creating and Using Containers
 
 ### Check Docker Install and Config
 
@@ -151,7 +151,8 @@ _________________________________________________
 ### Docker Networks: Concepts
 
   * command: `docker container run -p` 
-  * -p command exposes the port on your machine, but there is a lot more going on in the background.
+  * command: `docker container run -p 80:80 --name webhost -d nginx`
+  * -p (publish) command exposes the port on your machine, but there is a lot more going on in the background.
   * command: `docker container port <container>`
   * quick port check to see what ports are open in a container
 
@@ -234,24 +235,47 @@ ________________________________________________________
   * cmd: `docker container run -d --name new_nginx --network my_app_net nginx`
   * to run a nginx container in background and attach a network my_app_net
   
+### Docker Networks: DNS
+You are gonna learn about DNS, and how it affects containers in custom networks and default networks. 
+
+* Having good DNS is important because we can't rely on IP addresses to inside containers since things are so dynamic.
+
+* DNS is the standard for how we do intercommunication between containers on the same host and across host.
+
+* It is recommended to create custom networks rather than using `--link` all the time
+
+### Assignment - 2
+
+#### Start two linux distribution
+  cmd: `docker container run --rm -it centos:7 bash`
+  * gets centos:7 image and runs bash inside it 
+  * --rm removes the centos:7 after exiting
+
+    * curl command comes with centos image
+    * package manager for centos is yum
+________________________________________________________   
+  cmd: `docker container run --rm -it ubuntu:14.04 bash`
+  * gets ubuntu:14.04 image and runs bash inside
+  * --rm removes the centos:7 after exiting
+
+    * cmd: `apt-get update && apt-get install -y curl`
+    * installs curl from apt-get package manager
+
+### Assignment: DNS Round Robin Test - 3
 
 
+  1. create a network
+    * cmd: `docker network create sup`
+  
+  2. create two container, run them in the background and attach network sup to the container with elasticsearch:2 image
+    * cmd:`docker container run -d --network sup --network-alias search elasticsearch:2` 
+    * alt cmd: `docker container run -d --net sup --net-alias search elasticsearch:2`
+    * --network-alias <name>, so I could find them with the DNS name search
+  * since name is not specified you could use same above command to create another container
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+  3. this should run nslookup command in the 'search' DNS entry and immediately exit and remove alpine image because of --rm switch
+    * cmd: `docker container run --rm --net dude alpine nslookup search.`
+  
+  4. this will give back elasticsearch server name, although you are running same DNS search there will be different elastic search server
+    * cmd: `docker container run --rm --net dude centos curl -s search:9200`
 
