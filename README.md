@@ -134,19 +134,22 @@ _________________________________________________
     * inside this container you could use ubuntu package manager
     * command: `apt-get install -y curl`
     * installs curl inside ubuntu image.
-  * you could exit out of this ubuntu server but if you start a new ubuntu then this new server will not have curl installer, you will have to install that again. 
+  * you could exit out of this ubuntu server but if you start a new ubuntu then this new server will not have curl installed, you will have to install that again. 
   * to use same ubuntu image you will have to use following command.
   * command: `docker container start -ai ubuntu`
 _________________________________________________
 
   * command: `docker container exec -it`
-  * what is I want to see the shell inside a running container that's already running mysql or nginx. we can use above command.
+  * cmd: `docker container exec -it <containerName> command`
+  * cmd: `docker container exec -it elasticsearch:2 bash`
+  * what if I want to see the shell inside a running container that's already running mysql or nginx. we can use above command.
   * Run additional process in running container. 
 _________________________________________________
 
-  * Alpine is another small security focused distribution of linux. It is only 5 meg in size
+  * Alpine is another small security focused distribution of linux.
+  * It is only 5 meg in size
   * Alpine is so small it does not have bash in it, but it does have sh
-  * we can install package manager of Alpine which 'apk' if you want to install bash
+  * we can install using package manager of Alpine which 'apk' if you want to install bash
 
 ### Docker Networks: Concepts
 
@@ -279,3 +282,126 @@ ________________________________________________________
   4. this will give back elasticsearch server name, although you are running same DNS search there will be different elastic search server
     * cmd: `docker container run --rm --net dude centos curl -s search:9200`
 
+## Section 4: Container Images, Where to Find Them and How to Build Them
+
+### What's in an image (And what isn't)
+
+  * App binaries and dependencies for you app
+  * Metadata about the image data and how to run the image
+
+  * Inside a image there is not a complete OS. No kernel, kernel modules(e.g. drivers), it is just the binaries that your application needs because host provides the kernel
+  * this is one the distinct characteristics around container that makes it different from virtual machine, it that it is not booting up a full OS it is really just starting an application.
+
+### The Mighty Hub: Using Docker Hub Registry Images
+
+  * Docker hub has many different images such as nginx, mysql, etc
+  [Docker Hub Registry](hub.docker.com)
+  * typically use official images
+  * official images have just the name without forward slash
+
+#### To pull docker images
+  * this will download most latest image from docker hub registry
+    * cmd: `docker pull nginx` 
+
+  * this will download image with version specified.
+    * alt: `docker pull nginx:1.21.5`
+
+### Images and Their Layers: Discover Image Cache
+
+  * Images are made up of file system changes and metadata
+  * each layer is uniquely identified as a SHA, and only stored once on a host
+  * this storage space on host and transfer time on push/pull
+  * When you start a container it is just a single layer of changes on top of image
+  * `docker history:mysql` and `docker image inspect nginx`, teach us what's going on inside a image and how it was made
+
+### Image Tagging and Pushing to Docker Hub
+
+  * All about image tags
+    * There is lot to tag because they're not as intuitive as you might think when you first start using them
+  
+  * How to upload to Docker Hub
+    * They need to be in a specific format in order to work with a registry
+  
+  * Image ID vs Tag
+    * Image ID is a unique id
+    * if multiple tags belong to a image then all tags will have same image ID
+    
+  * this will add new tag to the existing image. it will have same image ID with name as nirajanp/nginx in repositories
+    * cmd: `docker image tag  nginx nirajanp/nginx`
+      `docker image tag <source_image:[tag]> <target_image:[tag]>`
+  
+  * to upload this into Docker Hub you need to login from CLI
+    * cmd: `docker login`
+  
+  * to logout
+    * cmd: `docker logout`
+  
+  * to push image in Docker Hub
+    * cmd: `docker image push nirajanp/nginx`
+  
+  * to give a tag name use this command
+    * cmd: `docker image tag nirajanp/nginx nirajanp/nginx:testing`
+  
+### Building Images: The Dockerfile Basics
+
+  * Dockerfile is a recipe of creating images
+  * all of the images that is created are created by using Dockerfile
+  * a Dockerfile looks like a shell script but it is not a shell script, neither batch file
+  * it is totally different language of a file that is unique to docker
+  * its default name is Dockerfile with capital D
+  * with the command line whenever you need to deal with the Dockerfile using docker command you could use -f to specify a different file than default
+  * e.g cmd: `docker build -f some-dockerfile`
+
+#### First Step in Dockerfile
+
+  * first Step in Dockerfile is a __FROM__ command
+  * it is required to be in every docker file
+  * it specifies a minimal distribution like debian or alpine
+  * the reason you would use these is to save time and pain because these minimal distribution are much smaller than CD's you would use to install a virtual machine from them 
+  * one of the main benefits of using them in container is to use their package distribution system to install whatever software you need in your package
+
+#### Next we have ENV 
+
+  * __ENV__ is for environment variables, it is a way to set environment variables
+  * it is important because they are the main way we set key and value for container building and for running container
+
+__NOTE: Order of command matters because it works Top-Down__
+
+#### RUN command
+
+  * you will usually see __RUN__ commands when you install software with package repository, or need to do some unzipping, or some file edits inside container itself
+
+#### EXPOSE command
+
+  * by default no TCP or UDP ports are open inside a container
+  * it does not expose anything from container to a virtual network unless we specify in __EXPOSE__ command
+  * this __EXPOSE__ command does not mean that ports are going to be opened up in the host, that's what -p command is for when we use docker run
+
+#### CMD command
+
+  * this is a required command
+  * it is the final command it will run every time you launch a new container from a image
+  * or every time you restart stopped container
+
+### Building Images: Running Docker Builds
+
+  * go to the directory where there is Dockerfile, this file has instruction on how to build our image
+
+  * FROM cmd: when i build this image it is gonna pull the 'debian:stretch-slim' image in from docker hub down to my local cache and execute line by line each of those stanza(command) inside my docker engine and cache each of those layers
+  
+  * below command builds Dockerfile in the same directory with the name customnginx specified by using -t
+  * cmd: `docker image build -t customnginx .`
+
+  * since Dockerfile runs from top to bottom, if any change is made then it will run from where the change is made. thus it is recommended to have lines that change more at the bottom of the Dockerfile and line that changes less at the beginning. 
+
+### Building Images: Extending Official Images
+
+#### Write a Dockerfile to change the default nginx page and change to custom HTML
+
+  1. We want the latest nginx image so in Dockerfile we add this
+    __FROM nginx:latest__ 
+  2. this WORKDIR is really running cd: change directory. here we are changing to a default nginx directory for its html files
+    __WORKDIR /usr/share/nginx/html__
+  3. this is the stanza that you would use to copy your source code from your local machine, or your build servers, into your container images
+    * in this case we are overriding the index.html file of nginx in its home with custom defined html for 
+  __COPY__ index.html index.html
