@@ -405,3 +405,81 @@ __NOTE: Order of command matters because it works Top-Down__
   3. this is the stanza that you would use to copy your source code from your local machine, or your build servers, into your container images
     * in this case we are overriding the index.html file of nginx in its home with custom defined html for 
   __COPY__ index.html index.html
+
+### Build Your own Dockerfile
+
+  1. make changes in your Dockerfile
+  2. build the Dockerfile. this is gonna build the docker file with image name testnode in current directory
+    * cmd: `docker build -t testnode .`
+  3. then run the container 
+    * cmd: `docker container run --rm -p 80:3000 testnode` locally 
+  
+  * Now to push this to Docker Hub, you need to change its name first
+    1. cmd: `docker image tag testnode nirajanp/testnode`
+    2. push to Docker Hub `docker push nirajanp/testnode`
+    3. Now if you remove nirajanp/testnode from local environment, and try to run this container, docker will get that image from Docker Hub Registry and run it locally
+    4. cmd: `docker container run --rm -p 80:3000 nirajanp/test-app`
+
+## Section 5: Container Lifetime & Persistent Data: Volumes
+
+### Container Lifetime & Persistent Data
+
+  * Containers are usually immutable and ephemeral (i.e. unchanging, temporary)
+  * the idea here is we can just throw away a container and create a new one with a image
+  * "immutable infrastructure": only re-deploy containers, never change
+  * this is the ideal scenario, but what about databases, or unique data?
+    * ideally the container should not contain your unique data with application binaries, this is known as separation of concerns. 
+  * docker gives us features to ensure these "separation of concerns"
+  * the problem of unique data is known as "persistent data"
+  * in new world of container and application scaling persistent data causes a unique problem
+    * Docker has two solutions to this problem
+      1. Volumes or Data Volumes
+      2. Bind Mounts
+ 
+ #### Volumes 
+ Docker volumes are configuration options for containers that creates a special location outside of that container Union File System(UFS) to store unique data. this preserves it across container removals and allows us to attach it to whatever container we want
+
+ #### Bind Mounts 
+ which are simply us sharing or mounting a host directory, or file, into a container. it will just look like a local file path, or a directory path, to the container, it won't actually know it is coming from the host
+
+### Persistent Data: Data Volumes
+
+  * The first way you can tell a container that it needs to worry about a __Volume__ is in a __Dockerfile__
+  * __Volume__ need manual deletion, it won't be deleted by removing a container
+  
+  * to list volumes in your docker
+  * cmd: `docker volume ls`
+________________________________________________________
+  * all the volumes are have a long code which are not user friendly and thus it is difficult to distinguish which container a certain volume belongs to
+
+  * there are also __named volumes__ which are friendly way to assign volumes to containers by using -v while running a container 
+  * cmd: ` docker container run -d --name mysql -e MYSQL_ALLOW_EMPTY_PASSWORD=True -v mysql-db:/var/lib/mysql mysql`
+________________________________________________________
+
+  * why would you want to `docker volume create`?
+    we can create them from a docker container run command at runtime, and we can create them by specifying them in the Dockerfile, there is only a few cases where you'd want to create it ahead of time. 
+  * By using this option we could specify a different driver for volume
+
+### Persistent Data: Bind Mounting
+
+#### Bind mount
+  * it is just a mapping of the host files, or directories, into a container file or directory
+  * in the background it's basically just having two locations point to the same file
+  * it skips UFS like other volumes do so that it's not going to wipe out your host location when you delete the container
+  * you can't use them in Dockerfile, must be at container run
+  * cmd: `docker container run -v /Users/np/stuff:/path/container` (mac/linux)
+  * cmd: `docker container run -v //c/Users/np/stuff:/path/container` (windows)
+  * the way docker tells different between named volume and bind mount is that, bind mount starts with a forward slash (/)
+
+#### Trying bind mount
+
+  * in 48_PersistentData-BindMounting folder there are two files i.e. Dockerfile and index.html
+  * the Dockerfile is configured to run nginx server and load custom designed index.html instead of default nginx webpage
+  * one way of doing this is by building the Dockerfile as image and running the container
+  * __another way is by using bind mounting__
+  * cmd:  `docker container run -d --name nginx -p 80:80 -v $(pwd):/usr/share/nginx/html nginx`
+  * this command runs a nginx container in background, and it maps path of current directory of host to the directory in container
+  * any change made on host will also reflect in container and vice versa
+  
+
+
