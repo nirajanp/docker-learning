@@ -1,0 +1,16 @@
+version: '3'
+# this has got two services or two containers
+# first one is a nginx server which is configured as proxy in this case
+# it will be listening on port 80 on my local machine 
+# there is also a volume command where bind mount is done to a file in the directory which is named 'nginx.conf' 
+# It just shows in this case, I am actually taking a file on my local environment. Let's say that this directory is a Git repository that stores these config files for me. It allows me to map that file in to the container. At the end it says 'ro', that means read only, meaning I can't change it in the container
+# that config file is letting nginx instead of being a web server, I would like you to be a reverse proxy, and sit in front of another server, which in this case we're calling our 'web' server with its service name, and its running the Apache 2 server, which is the image httpd from the official image repository from Docker Hub
+services:
+  proxy:
+    image: nginx:1.13 # this will use the latest version of 1.13.x
+    ports:
+      - '80:80' # expose 80 on host and sent to 80 in container
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+  web:
+    image: httpd  # this will use httpd:latest
