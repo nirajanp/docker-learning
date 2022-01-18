@@ -1,0 +1,36 @@
+## Section 7: Swarm Intro and Creating a 3-node Swarm Cluster
+  * one of the big promises of containers is that we can easily deploy our apps like we are a platform service, like Heroku
+  * we could do that on anyone's hardware, whether it's on our hardware, it's a cloud provided, whether it's virtual or physical. with Docker, our apps can run same whether they're on Amazon, Azure, DigitalOcean, Linode, Rackspace, Google Cloud or whatever. 
+  __Without all those platform how do we deploy our many containers across many servers or instances?__
+  * How do we automate container lifecycle?
+    * In big companies like Netflix they have thousands and thousands of nodes, and many engineers to work on that. but in a team if you are a solo developer, how do you take your container and scale them and deal with their entire lifecycle? from deploying then, to starting them, to restarting them, to recreating them, to deleting them and updating them and all that. how exactly does docker automate container lifecycle, or does it even do that?
+
+  * how do we easily scale out/in/up/down?
+  * how can we ensure our containers are re-created if they fail?
+  * how can we replace containers without downtime? (blue/green deploy)
+    * blue/green deploy means zero downtime and you take servers out of the pool in order to bring new ones in. you end up with always something available so that you're never really down when you update
+  * how can we control/track where containers get started?
+  * how can we create cross-node virtual networks?
+  * when it comes to security, how do we be sure that our containers are only running on the machines that we intended for them to run on?
+  * now that we are moving things around and deploying them dynamically on the fly, how do we store the private information we need for our containers, like secrets or passwords?
+
+### Swarm Mode: Built-in Orchestration
+
+  * Swarm mode is a clustering solution that brings together different OS, hosts, or nodes, or whatever you want to call them, into a single manageable unit that you can then orchestrate the lifecycle of your containers in.
+  * Swarm is not enabled by default, these commands can't be used until they are enabled
+    * docker swarm
+    * docker node
+    * docker service
+    * docket stack
+    * docker secret
+  
+  * some basic concepts
+    * Swarm has manager nodes and worker nodes.
+    * manager nodes have database locally on them known as the Raft Database.
+    * Raft Database stores manager nodes configuration and gives them all the information they need to have to be the authority inside a swarm
+    * for example: if three different managers are added to a Swarm, they all keep a copy of that database and encrypt their traffic in order to ensure integrity and guarantee the trust that they're able to manage this swarm securely
+
+  * to illustrate more clearly refer to the image attached in section 07 folder 61
+    * This image shows little complicated view of manager and worker nodes. in this image there is a Raft consensus database I mentioned earlier, that is replicated amongst all the nodes. they issue orders down to the workers. the managers themselves can also be workers, managers can be demoted to workers and workers can be promoted to manager. when you think of manager think of worker with permission to control the swarm. the only requirements for each one of these servers is that they are running the same Docker that you are already using now
+
+* with Swarm Mode, we get a feature-packed set of capabilities out of the box that allow us to already use the existing Docker skills we have in order to deploy our containers to the internet in a reliable fashion and solve a lot of problems that we would have once we go production
